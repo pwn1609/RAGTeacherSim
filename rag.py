@@ -1,3 +1,4 @@
+import pickle
 import streamlit as st
 # Set page config first
 st.set_page_config(page_title="Teaching Simulation", page_icon="👩🏫")
@@ -23,36 +24,24 @@ if "messages" not in st.session_state:
 if "student_chat_history" not in st.session_state:
     st.session_state.student_chat_history = [] # Used to store the chat history
 
-if "textbook_passages" not in st.session_state:
-    st.session_state.textbook_passages = [
-        "Effective classroom management involves clear expectations and consistency.",
-        "Engaging lessons should include interactive activities and visual aids.",
-        "Positive reinforcement can boost student motivation and participation.",
-        "A reflective teacher reviews classroom interactions to improve teaching methods.",
-        "Using varied instructional strategies can help meet diverse learning needs.",
-    ] # initalizes text book passages to be used by the ai
-    
-    # Set up embeddings and FAISS index
-    embedder = SentenceTransformer('all-MiniLM-L6-v2') # Create a sentence transformer
-    passage_embeddings = embedder.encode(st.session_state.textbook_passages) # Convert the the textbook passages into a vectorized form using the sentence transformer. 
-    passage_embeddings = np.array(passage_embeddings).astype('float32') # Convert the embeddings to a np array of float32
-    
-    dimension = passage_embeddings.shape[1] # Dimensionality of the embeddings
-    st.session_state.index = faiss.IndexFlatL2(dimension) # Creates FAISS index using euclidiean distance as the similarity matrix
-    st.session_state.index.add(passage_embeddings) # adds the embeddings to the FAISS index, allowing for similarity searches.
-    st.session_state.embedder = embedder # Stores the sentence transformer model in the session state
+FAISS_INDEX_PATH = "vectorized_textbooks.faiss"
+TEXTBOOK_PASSAGES_PATH = "textbook_passages.pkl"
 
-# Initialize expert chat in session state if not present 
+if "textbook_passages" not in st.session_state:
+    with open(TEXTBOOK_PASSAGES_PATH, "rb") as file:
+        st.session_state.textbook_passages = pickle.load(file)
+
+        st.session_state.index = faiss.read_index(FAISS_INDEX_PATH)
+
+        st.session_state.embedder = SentenceTransformer('all-MiniLM-L6-v2')
+
 if 'expert_chat_history' not in st.session_state:
     st.session_state.expert_chat_history = [] # Initialize the chat history
 
-# ------------------------------
-# Helper functions 
-# ------------------------------
+
 def check_appropriate_teacher_behavior(user_input):
     """Check if teacher's input is appropriate for a classroom with a 2nd grader"""
     try:
-        # Create prompt to evaluate teacher behavior
         evaluation_prompt = {
             "role": "system",
             "content": """Evaluate whether the following teacher input is appropriate for a 2nd grade classroom.
@@ -128,11 +117,16 @@ def get_response(user_input):
         return "There was an issue with getting a response."
 
 def retrieve_textbook_context(conversation_text, top_k=3):
-    """Retrieve relevant textbook passages based on conversation context"""
-    query_embedding = st.session_state.embedder.encode([conversation_text]) # Embed the conversation
-    query_embedding = np.array(query_embedding).astype('float32') # Convert the embedding to a np array of float32
-    distances, indices = st.session_state.index.search(query_embedding, top_k) # Find similar textbook passages
-    retrieved_passages = [st.session_state.textbook_passages[i] for i in indices[0]] # create the list of textbook passages
+    
+    query_embedding = st.session_state.embedder.encode([conversation_text])
+    query_embedding = np.array(query_embedding).astype('float32')
+
+    distances, indices = st.session_state.index.search(query_embedding, top_k)
+
+    retrieved_passages = [
+        st.session_state.textbook_passages[i] for i in indices[0] if i < len(st.session_state.textbook_passages)
+    ]
+    
     return retrieved_passages
 
 def get_expert_advice(question, conversation_history):
