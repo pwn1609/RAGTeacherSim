@@ -1,0 +1,49 @@
+[
+  {
+    "scenario_id": "T001",
+    "type": "Teaching Concept",
+    "title": "Teaching Addition with Regrouping",
+    "description": "Teach a student addition with regrouping. Student is confused about place value. Keep the class engaged."
+  },
+  {
+    "scenario_id": "T002",
+    "type": "Student Emotion",
+    "emotion": "Frustration",
+    "title": "Handle a Frustrated Student",
+    "description": "Help a student who's upset they can't finish a worksheet correctly. Calm them and help them complete it."
+  },
+  {
+    "scenario_id": "T003",
+    "type": "Student Emotion",
+    "emotion": "Anger",
+    "title": "Handle an Angry Student",
+    "description": "Student is angry after losing a game at recess. Refuses to participate in class. Help them calm down and rejoin."
+  },
+  {
+    "scenario_id": "T004",
+    "type": "Student Emotion",
+    "emotion": "Excitement",
+    "title": "Manage an Excited Student",
+    "description": "Student is overly excited about a field trip and can’t focus. Acknowledge their excitement, but help them refocus."
+  },
+  {
+    "scenario_id": "T005",
+    "type": "Student Emotion",
+    "emotion": "Distracted",
+    "title": "Refocus a Distracted Student",
+    "description": "Student is looking out the window and not working. Gently guide them back to the task."
+  },
+  {
+    "scenario_id": "T006",
+    "type": "Student Emotion",
+    "emotion": "Shy",
+    "title": "Engage a Shy Student",
+    "description": "Shy student is hesitant to speak. Encourage them to share in a supportive way."
+  },
+  {
+    "scenario_id": "T007",
+    "type": "Classroom Management",
+    "title": "Handle a Rowdy Classroom",
+    "description": "Students are loud and not paying attention after recess. Regain control and start the lesson."
+  }
+]

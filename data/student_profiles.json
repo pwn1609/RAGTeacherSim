@@ -1,0 +1,14 @@
+[
+  {
+    "student_id": "S001",
+    "name": "Emma",
+    "traits": ["shy", "eager to please"],
+    "emotional_state": "excited"
+  },
+  {
+    "student_id": "S002",
+    "name": "Liam",
+    "traits": ["loud", "rowdy"],
+    "emotional_state": "frustrated"
+  }
+]
