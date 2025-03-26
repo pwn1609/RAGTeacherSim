@@ -40,7 +40,7 @@ def generate_student_response(user_input, chat_history, scenario_id=None):
     # Create system prompt with scenario context
     system_prompt = {
         "role": "system",
-        "content": f"You are an enthusiastic 2nd grade student who responds simply, sometimes distractedly. {scenario_context}"
+        "content": f"You are an enthusiastic 2nd grade student who responds simply, sometimes distractedly. {scenario_context} You always respond as a second grader, and never as the teacher."
     }
     
     messages = [system_prompt] + chat_history + [{"role": "user", "content": f"Teacher: {user_input}"}]
