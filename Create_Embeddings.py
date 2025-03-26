@@ -4,7 +4,7 @@ import numpy as np
 import pickle
 from sentence_transformers import SentenceTransformer
 
-TEXTBOOKS_DIR = "./CleanedTextBooks/" 
+TEXTBOOKS_DIR = "CleanedTextBooks" 
 FAISS_INDEX_PATH = "vectorized_textbooks.faiss" 
 TEXTBOOK_PASSAGES_PATH = "textbook_passages.pkl"
 EMBEDDING_MODEL = "all-MiniLM-L6-v2" 

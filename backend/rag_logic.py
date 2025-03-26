@@ -1,49 +1,51 @@
 import pickle
 import faiss
 import numpy as np
+import json
+import os
 from sentence_transformers import SentenceTransformer
 import ollama
  
 embedder = SentenceTransformer('all-MiniLM-L6-v2')
-with open("C:\\Users\\pwn16\\OneDrive\\Documents\\School\\CS-339R\\RAGTeacherSim\\backend\\textbook_passages.pkl", "rb") as f:
+with open("textbook_passages.pkl", "rb") as f:
     textbook_passages = pickle.load(f)
-index = faiss.read_index("C:\\Users\\pwn16\\OneDrive\\Documents\\School\\CS-339R\\RAGTeacherSim\\backend\\vectorized_textbooks.faiss")
+index = faiss.read_index("vectorized_textbooks.faiss")
 
-def check_appropriate_teacher_behavior(user_input):
-    evaluation_prompt = {
-        "role": "system",
-        "content": """Evaluate whether the following teacher input is appropriate for a 2nd grade classroom.
-        Inappropriate behavior includes:
-        - Yelling or using ALL CAPS excessively
-        - Using insulting or demeaning language
-        - Making threats or using intimidation
-        - Using inappropriate adult language or topics
-        - Making personal comments unrelated to learning
-        - Anything that would be considered verbal abuse
+# Load scenarios data
+def load_scenarios():
+    try:
+        scenarios_path = os.path.join("data", "scenarios.json")
+        with open(scenarios_path, "r") as f:
+            scenarios_data = json.load(f)
+        return {s["scenario_id"]: s for s in scenarios_data}
+    except Exception as e:
+        print(f"Error loading scenarios: {e}")
+        return {}
+
+scenarios_dict = load_scenarios()
+
+
+def generate_student_response(user_input, chat_history, scenario_id=None):
+    # Get scenario context if available
+    scenario_context = ""
+    if scenario_id and scenario_id in scenarios_dict:
+        scenario = scenarios_dict[scenario_id]
+        scenario_type = scenario.get("type", "")
         
-        Output ONLY \"inappropriate\" if the input is inappropriate, or \"appropriate\" if it is acceptable.
-        Do not explain your reasoning - just return one word."""
-    }
-    response = ollama.chat(model="llama3.2", messages=[
-        evaluation_prompt,
-        {"role": "user", "content": f"Teacher's input: {user_input}"}
-    ])
-    result = response.get("message", {}).get("content", "").strip().lower()
-    return "inappropriate" not in result
+        if scenario_type == "Student Emotion" and "emotion" in scenario:
+            scenario_context = f"You are feeling {scenario['emotion'].lower()}. "
+        
+        scenario_context += f"This is about: {scenario['description']}"
 
-def generate_student_response(user_input, chat_history):
-    if not check_appropriate_teacher_behavior(user_input):
-        return "[That reply was not appropriate.]"
-
-    chat_history.append({"role": "user", "content": f"Teacher: {user_input}"})
+    # Create system prompt with scenario context
     system_prompt = {
         "role": "system",
-        "content": "You are an enthusiastic 2nd grade student who responds simply, sometimes distractedly..."
+        "content": f"You are an enthusiastic 2nd grade student who responds simply, sometimes distractedly. {scenario_context}"
     }
-    messages = [system_prompt] + chat_history
+    
+    messages = [system_prompt] + chat_history + [{"role": "user", "content": f"Teacher: {user_input}"}]
     response = ollama.chat(model="llama3.2", messages=messages)
     reply = response.get("message", {}).get("content", "No response found.")
-    chat_history.append({"role": "assistant", "content": reply})
     return reply
 
 def retrieve_textbook_context(query, top_k=3):
@@ -51,20 +53,39 @@ def retrieve_textbook_context(query, top_k=3):
     distances, indices = index.search(query_embedding, top_k)
     return [textbook_passages[i] for i in indices[0] if i < len(textbook_passages)]
 
-def generate_expert_advice(question, conversation_history):
+def generate_expert_advice(question, conversation_history, scenario_id=None):
+    # Create transcript from conversation history
     transcript = "\n".join(
         f"{'Student' if m['role'] == 'assistant' else 'Teacher'}: {m['content']}"
         for m in conversation_history
     )
-    passages = retrieve_textbook_context(transcript)
+    
+    # Add scenario context if available
+    scenario_context = ""
+    if scenario_id and scenario_id in scenarios_dict:
+        scenario = scenarios_dict[scenario_id]
+        scenario_context = f"Scenario: {scenario['title']}\nDescription: {scenario['description']}\n\n"
+    
+    # Augment query with scenario information for better retrieval
+    retrieval_query = question
+    if scenario_id and scenario_id in scenarios_dict:
+        scenario = scenarios_dict[scenario_id]
+        retrieval_query = f"{question} {scenario['title']} {scenario['description']}"
+    
+    # Retrieve relevant textbook passages
+    passages = retrieve_textbook_context(retrieval_query)
+    
+    # Create prompt with all context
     prompt = {
         "role": "system",
-        "content": "You are an expert teacher trainer..."
+        "content": "You are an expert teacher trainer who provides specific, actionable advice based on educational best practices and textbook knowledge. Keep your answers focused on practical strategies for the specific scenario."
     }
+    
     user_input = {
         "role": "user",
-        "content": f"Question: {question}\n\nConversation:\n{transcript}\n\nTeaching Principles:\n" + "\n".join(f"- {p}" for p in passages)
+        "content": f"{scenario_context}Question: {question}\n\nConversation:\n{transcript}\n\nRelevant Teaching Principles:\n" + "\n".join(f"- {p}" for p in passages)
     }
+    
     messages = [prompt, user_input]
     response = ollama.chat(model="llama3.2", messages=messages)
     return response.get("message", {}).get("content", "No response found.")
