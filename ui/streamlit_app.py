@@ -102,8 +102,23 @@ if selected_scenario != "Select a scenario..." and (st.session_state.current_sce
 # Display current scenario information
 if st.session_state.current_scenario:
     with st.expander("Current Scenario", expanded=True):
-        st.write(f"**{st.session_state.current_scenario['title']}**")
-        st.write(st.session_state.current_scenario['description'])
+        st.write(f"## {st.session_state.current_scenario['title']}")
+        
+        # Student information
+        if "student_name" in st.session_state.current_scenario:
+            st.write(f"### Student: {st.session_state.current_scenario['student_name']}")
+            if "student_details" in st.session_state.current_scenario:
+                st.write(st.session_state.current_scenario['student_details'])
+        
+        # Classroom situation
+        if "classroom_situation" in st.session_state.current_scenario:
+            st.write("### Classroom Situation")
+            st.write(st.session_state.current_scenario['classroom_situation'])
+        
+        # Teacher objective
+        if "teacher_objective" in st.session_state.current_scenario:
+            st.write("### Your Objective")
+            st.write(st.session_state.current_scenario['teacher_objective'])
         
         # Display additional information based on scenario type
         if "type" in st.session_state.current_scenario:
@@ -111,9 +126,9 @@ if st.session_state.current_scenario:
             if scenario_type == "Student Emotion" and "emotion" in st.session_state.current_scenario:
                 st.write(f"**Student Emotion:** {st.session_state.current_scenario['emotion']}")
             elif scenario_type == "Teaching Concept":
-                st.write("**Teaching a Concept**")
+                st.write("**Scenario Type:** Teaching a Concept")
             elif scenario_type == "Classroom Management":
-                st.write("**Classroom Management Situation**")
+                st.write("**Scenario Type:** Classroom Management Situation")
 
 # Main student chat area
 st.header("Student Conversation")

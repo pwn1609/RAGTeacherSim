@@ -32,15 +32,28 @@ def generate_student_response(user_input, chat_history, scenario_id=None):
         scenario = scenarios_dict[scenario_id]
         scenario_type = scenario.get("type", "")
         
+        # Add student name and details
+        student_name = scenario.get("student_name", "a student")
+        if student_name != "Whole Class":  # Only use student name if it's not a whole class scenario
+            scenario_context = f"Your name is {student_name}. "
+            
+            if "student_details" in scenario:
+                scenario_context += f"Your personality: {scenario['student_details']} "
+        
+        # Add emotional state if available
         if scenario_type == "Student Emotion" and "emotion" in scenario:
-            scenario_context = f"You are feeling {scenario['emotion'].lower()}. "
+            scenario_context += f"You are feeling {scenario['emotion'].lower()}. "
+        
+        # Add classroom situation
+        if "classroom_situation" in scenario:
+            scenario_context += f"Current situation: {scenario['classroom_situation']} "
         
         scenario_context += f"This is about: {scenario['description']}"
 
     # Create system prompt with scenario context
     system_prompt = {
         "role": "system",
-        "content": f"You are an enthusiastic 2nd grade student who responds simply, sometimes distractedly. {scenario_context} You always respond as a second grader, and never as the teacher."
+        "content": f"You are a 2nd grade student who responds simply, sometimes distractedly, in a childlike manner. {scenario_context} You always respond as a second grader, and never as the teacher."
     }
     
     messages = [system_prompt] + chat_history + [{"role": "user", "content": f"Teacher: {user_input}"}]
@@ -64,13 +77,31 @@ def generate_expert_advice(question, conversation_history, scenario_id=None):
     scenario_context = ""
     if scenario_id and scenario_id in scenarios_dict:
         scenario = scenarios_dict[scenario_id]
-        scenario_context = f"Scenario: {scenario['title']}\nDescription: {scenario['description']}\n\n"
+        scenario_context = f"Scenario: {scenario['title']}\nDescription: {scenario['description']}\n"
+        
+        # Add student information
+        if "student_name" in scenario and scenario["student_name"] != "Whole Class":
+            scenario_context += f"\nStudent: {scenario['student_name']}"
+            if "student_details" in scenario:
+                scenario_context += f"\nStudent Profile: {scenario['student_details']}"
+        
+        # Add classroom situation
+        if "classroom_situation" in scenario:
+            scenario_context += f"\n\nClassroom Situation: {scenario['classroom_situation']}"
+        
+        # Add teacher objective
+        if "teacher_objective" in scenario:
+            scenario_context += f"\n\nYour Teaching Objective: {scenario['teacher_objective']}"
+        
+        scenario_context += "\n\n"
     
     # Augment query with scenario information for better retrieval
     retrieval_query = question
     if scenario_id and scenario_id in scenarios_dict:
         scenario = scenarios_dict[scenario_id]
         retrieval_query = f"{question} {scenario['title']} {scenario['description']}"
+        if "teacher_objective" in scenario:
+            retrieval_query += f" {scenario['teacher_objective']}"
     
     # Retrieve relevant textbook passages
     passages = retrieve_textbook_context(retrieval_query)
@@ -78,7 +109,7 @@ def generate_expert_advice(question, conversation_history, scenario_id=None):
     # Create prompt with all context
     prompt = {
         "role": "system",
-        "content": "You are an expert teacher trainer who provides specific, actionable advice based on educational best practices and textbook knowledge. Keep your answers focused on practical strategies for the specific scenario."
+        "content": "You are an expert teacher trainer who provides specific, actionable advice based on educational best practices and textbook knowledge. Keep your answers focused on practical strategies for the specific scenario. Explicitly reference the teaching objective in your advice, and provide concrete techniques that address the specific classroom situation."
     }
     
     user_input = {
