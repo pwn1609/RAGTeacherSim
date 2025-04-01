@@ -28,7 +28,22 @@ def load_scenarios():
 scenario_menu, scenarios_dict = load_scenarios()
 
 # Create the main layout
-st.title("Teacher-Student Chat Simulator")
+st.markdown(
+    "<h2 style='text-align: left; '>AcademIQ AI</h2>", unsafe_allow_html=True
+)
+
+st.markdown(
+    """
+    <style>
+    .block-container {
+        width: 90%;
+        max-width: 1200px;  
+        margin: 0 auto;  
+    }
+    </style>
+    """,
+    unsafe_allow_html=True
+)
 
 # Define a callback for expert chat submission
 def on_expert_advice_submit():
@@ -52,9 +67,25 @@ def on_expert_advice_submit():
         except Exception as e:
             st.error(f"Error getting expert advice: {e}")
 
+st.markdown(
+    """
+    <style>
+    .stSidebar {
+        background-color: #2d3e34;
+        padding: 10px;
+        border-radius: 4px;
+    }
+    .stSidebarHeader, .stSidebar .stTextInput input, .stSidebar .stButton, .stSidebar .stMarkdown {color: white }
+    .st-emotion-cache-1mw54nq.egexzqm0 {color: white}
+    .st-emotion-cache-fsammq.egexzqm0 {color: white}
+    </style>
+    """, unsafe_allow_html=True
+)
+
 # Create a sidebar for expert teacher
 with st.sidebar:
-    st.header("Expert Teacher Advisor")
+    st.markdown("<h1>Expert Teacher Advisor</h1>", unsafe_allow_html=True)
+    
     st.write("Ask for advice on how to handle this teaching scenario")
     
     # Expert chat input
@@ -81,24 +112,49 @@ with st.sidebar:
                 st.divider()
 
 # Main content area
-# Scenario selection dropdown
-scenario_options = ["Select a scenario..."] + [f"{s['title']}" for s in scenario_menu]
-selected_scenario = st.selectbox("Choose a scenario:", scenario_options, index=0)
+st.markdown(
+    """
+    <style>
+    .stSelectbox > div > div > div { font-size: 20px }
+    .stSelectbox > div > div { height: 50px }
+    </style>
+    """,
+    unsafe_allow_html=True
+)
 
-# Process scenario selection
-if selected_scenario != "Select a scenario..." and (st.session_state.current_scenario is None or 
-                                                 selected_scenario != st.session_state.current_scenario["title"]):
-    # Find the selected scenario
-    for menu_item in scenario_menu:
-        if menu_item["title"] == selected_scenario:
-            scenario_id = menu_item["scenario_id"]
-            if scenario_id in scenarios_dict:
-                st.session_state.current_scenario = scenarios_dict[scenario_id]
-                # Clear chat histories when changing scenarios
-                st.session_state.chat_history = []
-                st.session_state.expert_chat_history = []
-                st.rerun()
+# Show the description text only when no scenario is selected
+if not st.session_state.current_scenario:
+    st.write("""
+    Transform the way you prepare for the classroom with our AI-powered teaching assistant!
+    This interactive tool helps future elementary school teachers refine their skills by simulating real classroom interactions. 
+    The Student Chatbot behaves like a real second-grader, responding dynamically to your teaching style, questions, and guidance.
+    
+    💡 Need expert advice? The Teacher Expert panel on the left offers real-time teaching strategies and best practices to support your decisions.
+    
+    📝 Practice with confidence! Use this simulation to navigate classroom discussions, engage students effectively, and sharpen your teaching approach in a risk-free environment.
+    
+    📈 Your chats will be evaluated to provide personalized feedback, helping you improve and refine your teaching techniques for the classroom.
+    """)
+    
+# Scenario selection dropdown (only show if no scenario is selected)
+if st.session_state.current_scenario is None:
+    scenario_options = ["Select a scenario..."] + [f"{s['title']}" for s in scenario_menu]
+    selected_scenario = st.selectbox("", scenario_options, index=0)
 
+    # Process scenario selection
+    if selected_scenario != "Select a scenario..." and (st.session_state.current_scenario is None or 
+                                                     selected_scenario != st.session_state.current_scenario["title"]):
+        # Find the selected scenario
+        for menu_item in scenario_menu:
+            if menu_item["title"] == selected_scenario:
+                scenario_id = menu_item["scenario_id"]
+                if scenario_id in scenarios_dict:
+                    st.session_state.current_scenario = scenarios_dict[scenario_id]
+                    # Clear chat histories when changing scenarios
+                    st.session_state.chat_history = []
+                    st.session_state.expert_chat_history = []
+                    st.rerun()
+                    
 # Display current scenario information
 if st.session_state.current_scenario:
     with st.expander("Current Scenario", expanded=True):
@@ -130,8 +186,6 @@ if st.session_state.current_scenario:
             elif scenario_type == "Classroom Management":
                 st.write("**Scenario Type:** Classroom Management Situation")
 
-# Main student chat area
-st.header("Student Conversation")
 
 # Display the chat history
 for msg in st.session_state.chat_history:
@@ -166,7 +220,21 @@ if "student_chat_input" not in st.session_state:
     st.session_state.student_chat_input = ""
 
 # Chat input
-if st.session_state.current_scenario:
-    prompt = st.chat_input("Message the student...", key="student_chat_input", on_submit=on_student_chat_submit)
-else:
+# Display message if no scenario is selected
+if not st.session_state.current_scenario:
     st.info("Please select a scenario to begin chatting with the student.")
+else:
+    col1, col2 = st.columns([4, 1])
+    
+    with col1:
+        prompt = st.chat_input("Message the student...", key="student_chat_input", on_submit=on_student_chat_submit)
+    
+    with col2:
+        end_chat_button = st.button("End Chat", key="end_chat_button")
+    
+    if end_chat_button:
+        # Reset scenario and histories when chat ends
+        st.session_state.current_scenario = None
+        st.session_state.chat_history = []
+        st.session_state.expert_chat_history = []
+        st.rerun()
