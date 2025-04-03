@@ -1,0 +1,18 @@
+# Ignore teacher folder
+teacher/
+
+# Ignore Python virtual environment
+venv/
+env/
+ENV/
+.env
+.venv
+.pkl
+.faiss
+textbook_passages.pkl
+vectorized_textbooks.faiss
+.toml
+*.toml
+/Users/brandonyeequon/RAGTeacherSim/.streamlit/secrets.toml
+.streamlit/secrets.toml
+.streamlit/
