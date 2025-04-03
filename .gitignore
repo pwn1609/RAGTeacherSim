@@ -15,4 +15,4 @@ vectorized_textbooks.faiss
 *.toml
 /Users/brandonyeequon/RAGTeacherSim/.streamlit/secrets.toml
 .streamlit/secrets.toml
-.streamlit/
+.streamlit/.streamlit/secrets.toml
