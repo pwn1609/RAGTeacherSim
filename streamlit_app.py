@@ -772,7 +772,7 @@ footer_html = """
     bottom: 0;
     left: 0;
     right: 0;
-    padding: 5px 20px;  /* Reduced padding to make the footer less tall */
+    padding: 5px 20px;
     box-shadow: 0 -2px 5px rgba(0,0,0,0.1);
     z-index: 999;
     display: flex;
@@ -781,7 +781,6 @@ footer_html = """
     color: var(--st-text-color);
 }
 
-/* Scoped styles only inside .footer */
 .footer details summary {
     list-style: none;
 }
@@ -791,9 +790,9 @@ footer_html = """
 .footer details summary {
     cursor: pointer;
     font-weight: bold;
-    padding: 3px;  /* Reduced padding to make the summary less tall */
+    padding: 3px;
     color: inherit;
-    font-size: 14px;  /* Optionally, reduce font size */
+    font-size: 14px;
 }
 
 .footer details[open] summary {
@@ -822,12 +821,31 @@ body[data-theme="light"] .footer details[open] {
 /* Dark mode specific styling */
 body[data-theme="dark"] .footer details[open] {
     background-color: #333;  /* Solid background in dark mode */
+.footer details[open] {
+    position: absolute;
+    bottom: 50px;
+    right: 20px;
+    border-radius: 8px;
+    padding: 10px;
+    width: 300px;
+    box-shadow: 0 0 10px rgba(0,0,0,0.1);
+    background-color: #f8f8f8;
+    color: #333;
+}
+
+body[data-theme="light"] .footer details[open] {
+    background-color: #ffffff;
+    color: #333;
+}
+
+body[data-theme="dark"] .footer details[open] {
+    background-color: #333;
     color: #f0f2f6;
 }
 
 .footer details[open] p {
     text-align: left;
-    margin: 5px 0;  /* Reduced margin for compactness */
+    margin: 5px 0;
     color: inherit;
 }
 </style>
@@ -835,9 +853,11 @@ body[data-theme="dark"] .footer details[open] {
 <div class="footer">
     <details>
         <summary>❓ Help</summary>
+        <p>👩‍🏫 <b>Want to start the chat?</b> Pick a scenario from the "Select a scenario..." dropdown and begin chatting with the student.</p>
         <p>💡 <b>Need expert advice?</b> The Teacher Expert panel on the left offers real-time strategies.</p>
-        <p>📝 <b>Practice with confidence!</b> Engage students effectively and refine your approach risk-free.</p>
-        <p>📈 <b>Get personalized feedback!</b> Your chats are evaluated to improve your teaching techniques.</p>
+        <p>📈 <b>Get personalized feedback!</b> Your chats are evaluated to improve your teaching techniques. Click "end scenario" for feedback.</p>
+        <p>💬 <b>Want to start a new chat?</b> End the scenario and click the "Close Evaluation" button.</p>
+        <p>⚙️ <b>Want to change the look of the page?</b> Click the three dots in the top right corner than "Settings".</p>
     </details>
 </div>
 
@@ -850,6 +870,14 @@ body[data-theme="dark"] .footer details[open] {
                 summary.innerHTML = "⬅️ Back";  // Change text to "Back" when expanded
             } else {
                 summary.innerHTML = "❓ Help";  // Change text back to "Help" when collapsed
+    document.querySelectorAll('.footer details').forEach((details) => {
+        // Change summary text when toggled
+        details.addEventListener('toggle', () => {
+            const summary = details.querySelector('summary');
+            if (details.open) {
+                summary.innerHTML = "⬅️ Back";
+            } else {
+                summary.innerHTML = "❓ Help";
             }
         });
     });
