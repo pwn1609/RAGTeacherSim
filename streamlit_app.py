@@ -798,6 +798,29 @@ footer_html = """
 .footer details[open] summary {
     content: "Back";  /* Change the content to 'Back' when expanded */
 }
+
+/* Background for the expanded help content */
+.footer details[open] {
+    position: absolute;
+    bottom: 50px;  /* Reduced space from bottom */
+    right: 20px;  /* Reduced space from the right */
+    border-radius: 8px;
+    padding: 10px;  /* Reduced padding in the expanded content */
+    width: 300px;  /* Adjusted width for a more compact layout */
+    box-shadow: 0 0 10px rgba(0,0,0,0.1);
+    background-color: #f8f8f8;  /* Solid background color */
+    color: #333;  /* Text color for readability */
+}
+
+/* Light mode specific styling */
+body[data-theme="light"] .footer details[open] {
+    background-color: #ffffff;  /* Solid background in light mode */
+    color: #333;
+}
+
+/* Dark mode specific styling */
+body[data-theme="dark"] .footer details[open] {
+    background-color: #333;  /* Solid background in dark mode */
 .footer details[open] {
     position: absolute;
     bottom: 50px;
@@ -839,6 +862,14 @@ body[data-theme="dark"] .footer details[open] {
 </div>
 
 <script>
+    // JavaScript to toggle the "Help" and "Back" text
+    document.querySelectorAll('.footer details').forEach((details) => {
+        details.addEventListener('toggle', () => {
+            const summary = details.querySelector('summary');
+            if (details.open) {
+                summary.innerHTML = "⬅️ Back";  // Change text to "Back" when expanded
+            } else {
+                summary.innerHTML = "❓ Help";  // Change text back to "Help" when collapsed
     document.querySelectorAll('.footer details').forEach((details) => {
         // Change summary text when toggled
         details.addEventListener('toggle', () => {
